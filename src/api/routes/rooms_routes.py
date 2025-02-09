@@ -8,7 +8,6 @@ from domain.models import (
     RoomResponse,
 )
 from domain.exceptions import (
-    DomainException,
     RoomNotFoundException,
 )
 from infrastructure.repositories import RoomRepository
