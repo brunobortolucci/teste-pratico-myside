@@ -14,11 +14,19 @@ class RoomDB(Base):
     location = Column(String(100), nullable=False)
 
 
+class UserDB(Base):
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    username = Column(String(50), nullable=False)
+    password = Column(String(100), nullable=False)
+
+
 class ReservationDB(Base):
     __tablename__ = "reservations"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
     room_id = Column(String(36), ForeignKey("rooms.id"), nullable=False)
-    user_name = Column(String(50), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
