@@ -11,13 +11,5 @@ class RoomState(ABC):
         self.room = room
 
     @abstractmethod
-    def reserve(self, start_time: datetime, end_time: datetime) -> bool:
-        pass
-
-    @abstractmethod
-    def cancel(self, start_time: datetime, end_time: datetime) -> bool:
-        pass
-
-    @abstractmethod
     def check_availability(self, start_time: datetime, end_time: datetime) -> bool:
         pass
