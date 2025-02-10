@@ -1,7 +1,7 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 from uuid import UUID, uuid4
 from datetime import datetime
-from ..states.available import AvailableState
+from ..states import AvailableState, PartiallyAvailableState, UnavailableState
 from ..exceptions import ReservationNotFoundException
 
 
@@ -13,6 +13,33 @@ class MeetingRoom:
         self.location = location
         self.reservations: List[Dict] = []
         self.state = AvailableState(self)
+
+    @staticmethod
+    def from_db(room_db, reservations) -> "MeetingRoom":
+        room = MeetingRoom(
+            name=room_db.name,
+            capacity=room_db.capacity,
+            location=room_db.location,
+        )
+        room.id = room_db.id
+        room.reservations = [
+            {
+                "id": UUID(res["id"]),
+                "user_name": res["user_name"],
+                "start_time": res["start_time"],
+                "end_time": res["end_time"],
+            }
+            for res in reservations
+        ]
+
+        if not reservations:
+            room.state = AvailableState(room)
+        elif len(reservations) == 1:
+            room.state = PartiallyAvailableState(room)
+        else:
+            room.state = UnavailableState(room)
+
+        return room
 
     def is_period_available(self, start_time: datetime, end_time: datetime) -> bool:
         return not any(
@@ -34,13 +61,17 @@ class MeetingRoom:
         return self.reservations
 
     def add_reservation(
-        self, user_name: str, start_time: datetime, end_time: datetime
+        self,
+        reservation_id: UUID,
+        user_name: str,
+        start_time: datetime,
+        end_time: datetime,
     ) -> bool:
         if not self.state.check_availability(start_time, end_time):
             return False
 
         reservation = {
-            "id": uuid4(),
+            "id": reservation_id,
             "user_name": user_name,
             "start_time": start_time,
             "end_time": end_time,
