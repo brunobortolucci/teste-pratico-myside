@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from api.routes import main_router
 from domain.exceptions import DomainException
 from fastapi import HTTPException, status
+from infrastructure.database import database
 
 app = FastAPI(
     title="Sistema de Gerenciamento de Salas de Reunião",
@@ -10,6 +11,16 @@ app = FastAPI(
 )
 
 app.include_router(main_router)
+
+
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
 
 
 @app.exception_handler(DomainException)
