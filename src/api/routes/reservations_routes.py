@@ -9,9 +9,10 @@ from domain.exceptions import (
     ReservationConflictException,
 )
 from infrastructure.repositories import RoomRepository
+from infrastructure.database import database
 
 router = APIRouter()
-room_repository = RoomRepository()
+room_repository = RoomRepository(database=database)
 
 
 @router.post(
@@ -20,7 +21,7 @@ room_repository = RoomRepository()
     summary="Criar nova reserva",
     response_description="Reserva criada com sucesso",
 )
-def create_reservation(reservation: ReservationCreate) -> dict:
+async def create_reservation(reservation: ReservationCreate) -> dict:
     """
     Cria uma nova reserva de sala com as seguintes informações:
     - **room_id**: ID da sala
@@ -29,7 +30,7 @@ def create_reservation(reservation: ReservationCreate) -> dict:
     - **end_time**: Data/hora de término
     """
     try:
-        reservation_id = room_repository.create_reservation(reservation)
+        reservation_id = await room_repository.create_reservation(reservation)
         return {
             "id": reservation_id,
             "room_id": reservation.room_id,
@@ -51,11 +52,11 @@ def create_reservation(reservation: ReservationCreate) -> dict:
     summary="Cancelar reserva",
     response_description="Reserva cancelada com sucesso",
 )
-def delete_reservation(reservation_id: UUID) -> None:
+async def delete_reservation(reservation_id: UUID) -> None:
     """
     Cancela uma reserva existente
     """
     try:
-        room_repository.delete_reservation(reservation_id)
+        await room_repository.delete_reservation(reservation_id)
     except ReservationNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
