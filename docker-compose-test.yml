@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - test-db-data:/app/data
+    environment:
+      - PYTHONPATH=/app/src
+      - DATABASE_URL=sqlite:///data/test.db
+      - SECRET_KEY=test_secret_key
+      - ACCESS_TOKEN_EXPIRES_MINUTES=60
+      - DEBUG=False
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  test-db-data:
