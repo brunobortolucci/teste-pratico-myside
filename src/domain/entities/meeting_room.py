@@ -25,7 +25,7 @@ class MeetingRoom:
         room.reservations = [
             {
                 "id": UUID(res["id"]),
-                "user_name": res["user_name"],
+                "user_id": UUID(res["user_id"]),
                 "start_time": res["start_time"],
                 "end_time": res["end_time"],
             }
@@ -39,12 +39,25 @@ class MeetingRoom:
         else:
             room.state = UnavailableState(room)
 
+        room._update_state()
         return room
 
+    def _update_state(self) -> None:
+        if len(self.reservations) == 0:
+            self.state = AvailableState(self)
+        elif len(self.reservations) == 1:
+            self.state = AvailableState(self)
+        elif len(self.reservations) >= 16:
+            self.state = UnavailableState(self)
+        else:
+            self.state = PartiallyAvailableState(self)
+
     def is_period_available(self, start_time: datetime, end_time: datetime) -> bool:
-        return not any(
-            reservation["start_time"] < end_time
-            and reservation["end_time"] > start_time
+        if not self.reservations:
+            return True
+
+        return any(
+            reservation["start_time"] > end_time or reservation["end_time"] < start_time
             for reservation in self.reservations
         )
 
@@ -63,7 +76,7 @@ class MeetingRoom:
     def add_reservation(
         self,
         reservation_id: UUID,
-        user_name: str,
+        user_id: str,
         start_time: datetime,
         end_time: datetime,
     ) -> bool:
@@ -72,12 +85,12 @@ class MeetingRoom:
 
         reservation = {
             "id": reservation_id,
-            "user_name": user_name,
+            "user_id": user_id,
             "start_time": start_time,
             "end_time": end_time,
         }
         self.reservations.append(reservation)
-        self.state.reserve(start_time, end_time)
+        self._update_state()
         return True
 
     def cancel_reservation(self, reservation_id: UUID) -> bool:
@@ -94,12 +107,9 @@ class MeetingRoom:
                 f"Reserva com id {reservation_id} não encontrada"
             )
 
-        start_time = reservation["start_time"]
-        end_time = reservation["end_time"]
         self.reservations.remove(reservation)
-        return self.state.cancel(start_time, end_time)
+        self._update_state()
+        return True
 
     def check_availability(self, start_time: datetime, end_time: datetime) -> bool:
-        if self.state.check_availability(start_time, end_time):
-            return True
-        return False
+        return self.state.check_availability(start_time, end_time)
