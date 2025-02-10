@@ -2,6 +2,9 @@ from datetime import datetime
 from .state import RoomState
 from typing import TYPE_CHECKING
 
+from .available import AvailableState
+from .unavailable import UnavailableState
+
 if TYPE_CHECKING:
     from .available import AvailableState
     from .unavailable import UnavailableState

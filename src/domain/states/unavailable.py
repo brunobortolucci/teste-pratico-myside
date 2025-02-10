@@ -1,6 +1,5 @@
 from datetime import datetime
 from .state import RoomState
-from .partially_available import PartiallyAvailableState
 
 
 class UnavailableState(RoomState):
@@ -8,6 +7,14 @@ class UnavailableState(RoomState):
         return False
 
     def cancel(self, start_time: datetime, end_time: datetime) -> bool:
+        """
+        Importação do estado feito dentro do método de cancelar a reserva
+        para evitar problemas de importação circular
+        """
+        from .partially_available import (
+            PartiallyAvailableState,
+        )
+
         self.room.state = PartiallyAvailableState(self.room)
         return True
 
