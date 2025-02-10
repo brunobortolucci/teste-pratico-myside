@@ -24,7 +24,7 @@ room_repository = RoomRepository(database=database)
     summary="Criar nova sala",
     response_description="Sala criada com sucesso",
 )
-async def create_room(room_data: RoomCreate) -> MeetingRoom:  # <-- Adicione "async"
+async def create_room(room_data: RoomCreate) -> MeetingRoom:
     """
     Cria uma nova sala de reunião com as seguintes informações:
     - **name**: Nome da sala
@@ -50,7 +50,10 @@ async def create_room(room_data: RoomCreate) -> MeetingRoom:  # <-- Adicione "as
     summary="Listar todas as salas",
     response_description="Lista de salas retornadas com sucesso",
 )
-async def list_rooms() -> List[MeetingRoom]:
+async def list_rooms(
+    page: int = Query(1, description="Número da página"),
+    per_page: int = Query(10, description="Número de itens por página"),
+) -> MeetingRoom:
     """Retorna a lista de todas as salas cadastradas"""
     return await room_repository.get_all()
 
