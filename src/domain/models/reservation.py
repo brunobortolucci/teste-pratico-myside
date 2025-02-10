@@ -5,7 +5,6 @@ from pydantic import BaseModel, model_validator
 
 class ReservationCreate(BaseModel):
     room_id: UUID
-    user_name: str
     start_time: datetime
     end_time: datetime
 
